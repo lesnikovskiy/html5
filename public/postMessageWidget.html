@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title>widget</title>
+	<link rel="stylesheet" href="/styles/communication-styles.css">
+	<script type="text/javascript">
+		var trustedOrigin = 'http://portal.example.com:3000';
+		
+		function messageHandler(e) {
+			if (e.origin === trustedOrigin) {
+				document.getElementById('status').textContent = e.data;
+			} else {
+				throw new Error('Untrusted origin');
+			}
+		}
+		
+		function sendString (s) {
+			window.top.postMessage(s, trustedOrigin);
+		}
+		
+		function loadDemo() {
+			document.getElementById('actionButton').addEventListener('click', function() {
+				var msgText = document.getElementById('messageText').value;
+				sendString(msgText);
+			}, true);
+		}
+		
+		window.addEventListener('load', loadDemo, true);
+		window.addEventListener('message', messageHandler, true);
+	</script>
+</head>
+<body>
+	<h1>Widget iframe</h1>
+	<p><b>Origin</b>: http://chat.example.net:3000</p>
+	<p>Status set to: <strong id="status"></strong> by containing portal.</p>
+	<div>
+		<input type="text" id="messageText" value="Widget notification" />
+		<button id="actionButton">Send Notification</button>
+	</div>
+	<p>
+	This will ask the portal to notify the user. The portal does this by flashing the title. If the message comes from an origin other than http://chat.example.net:3000, the portal page will ignore it.
+	</p>
+</body>
+</html>

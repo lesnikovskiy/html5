@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Portal [http://localhost:3000]</title>
-	<link rel="stylesheet" href="/styles/main.css">
+	<title>Portal [http://portal.example.com:3000]</title>
+	<link rel="stylesheet" href="/styles/communication-styles.css">
 	<style>
 		iframe {
 			height: 400px;
@@ -11,16 +11,63 @@
 		}
 	</style>
 	<script>
+		var defaultTitle = 'Portal [http://portal.example.com:3000]';
+		var notificationTimer = null;
 		
+		var trustedOrigin = 'http://chat.example.net:3000';
+		
+		function messageHandler(e) {
+			if (e.origin == trustedOrigin) {
+				notify(e.data);
+			} else {
+				throw new Error('untrusted origin');
+			}
+		}
+		
+		function sendString(s) {
+			document.getElementById('widget').contentWindow.postMessage(s, trustedOrigin);
+		}
+		
+		function notify(message) {
+			stopBlinking();
+			blinkTitle(message, defaultTitle);
+		}
+		
+		function stopBlinking() {
+			if (notificationTimer !== null) {
+				clearTimeout(notificationTimer);
+			}
+			
+			document.title = defaultTitle;
+		}
+		
+		function blinkTitle(m1, m2) {
+			document.title = m1;
+			notificationTimer = setTimeout(blinkTitle, 1000, m2, m1); // won't work in IE
+		}
+		
+		function sendStatus() {
+			var statusText = document.getElementById('statusText').value;
+			sendString(statusText);
+		}
+		
+		function loadDemo() {			
+			document.getElementById('sendButton').addEventListener('click', sendStatus, true);
+			document.getElementById('stopButton').addEventListener('click', stopBlinking, true);
+			sendStatus();
+		}
+		
+		window.addEventListener('load', loadDemo, true);
+		window.addEventListener('message', messageHandler, true);
 	</script>
 </head>
 <body>
 	<h1>Cross-Origin Portal</h1>
-	<p><b>Origin</b>: http://localhost:3000</p>
-	Status <input type="text" id="status" value="Online">
-	<button id="sendButton"Change Status></button>
+	<p><b>Origin</b>: http://portal.example.com:3000</p>
+	Status <input type="text" id="statusText" value="Online" />
+	<button id="sendButton">Change Status</button>
 	<p>This uses postMessage to send a status update to the widget iframe contained in the portal page.</p>
-	<iframe src="http://localhost:3000/postMessageWidget.html" frameborder="0" id="widget"></iframe>
+	<iframe src="http://chat.example.net:3000/postMessageWidget.html" frameborder="0" id="widget"></iframe>
 	<p><button id="stopButton">Stop Blinking Title</button></p>
 </body>
 </html>
