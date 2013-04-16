@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Geolocation</title>
+	<link rel="stylesheet" href="/styles/main.css">
+	<link rel="stylesheet" href="/styles/geo-html5.css">
+</head>
+<body onload="loadDemo()">
+	<header>
+		<h1>Odometer Demo</h1>
+		<h4>Live Race Data!</h4>
+	</header>
+
+	<div id="container">
+		<section>
+			<article>
+				<header>
+					<h1>Your Location</h1>
+				</header>
+				<p class="info" id="status">Geolocation is not supported in your browser.</p>
+				<div id="geostatus">
+					<p id="latitude">Latitude: </p>
+					<p id="longitude">Longitude: </p>
+					<p id="accuracy">Accuracy: </p>
+					<p id="timestamp">Timestamp: </p>
+					<p id="currDist">Current distance traveled: </p>
+					<p id="totalDist">Total distance traveled: </p>
+				</div>
+				<div id="map"></div>
+			</article>
+		</section>
+		<footer>
+			<h2>Powered by HTML5, and your feet!</h2>
+		</footer>
+	</div>
+	<script>
+		var totalDistance = 0.0;
+		var lastLat;
+		var lastLong;
+
+		Number.prototype.toRadians = function() {
+			return this * Math.PI / 180;
+		};
+
+		function distance (lat1, lon1, lat2, lon2) {
+			var R = 6371; // the radius of the earth in km
+
+			var deltaLat = (lat2 - lat1).toRadians();
+			var deltaLon = (lon2 - lon1).toRadians;
+			lat1 = lat1.toRadians(), lat2 = lat2.toRadians();
+
+			var a = Math.sin(deltaLat/2) *
+					Math.sin(deltaLat/2) +
+					Math.cos(lat1) *
+					Math.cos(lat2) *
+					Math.sin(deltaLon/2) *
+					Math.sin(deltaLon/2);
+			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+			var distance = R * c;
+
+			return distance;
+		}
+
+		function updateErrorStatus(message) {
+			document.getElementById('status').style.background = 'papayaWhip';
+			document.getElementById('status').innerHTML = '<strong>Error:</strong> ' + message;			
+		}
+
+		function updateStatus(message) {
+			document.getElementById('status').style.background = 'paleGreen';
+			document.getElementById('status').innerHTML = message;
+		}
+
+		function loadDemo() {
+			if (navigator.geolocation) {
+				document.getElementById('status').innerHTML = "HTML5 Geolocation is supported in your browser.";
+				navigator.geolocation.watchPosition(updateLocation, handleLocationError, {timeout: 20000});
+			}
+		}
+
+		function handleLocationError(error) {
+			switch (error.code) {
+				case 0:
+					updateErrorStatus('There was an error while retrieving your location. Additional details: ' + error.message);
+					break;
+				case 1:
+					updateErrorStatus('The user opted not to share his or her location.');
+					break;
+				case 2:
+					updateErrorStatus('The browser was unable to determine your location. Additional details: ' + error.message);
+					break;
+				case 3:
+					updateErrorStatus('The browser timed out before retrieving the location.');
+					break;
+			}
+		}
+
+		function updateLocation(pos) {
+			var lat = pos.coords.latitude;
+			var lon = pos.coords.longitude;
+			var accuracy = pos.coords.accuracy;
+			var timestamp = pos.timestamp;
+
+			document.getElementById('latitude').innerHTML = 'Latitude: ' + lat;
+			document.getElementById('longitude').innerHTML = 'Longitude: ' + lon;
+			document.getElementById('accuracy').innerHTML = 'Accuracy: ' + accuracy + ' meters';
+			document.getElementById('timestamp').innerHTML = 'Timestamp: ' + timestamp;
+
+			// sanity test ... don't calculate distance if accuracy value too large
+			if (accuracy >= 30000) {
+				updateStatus('Need more accurate values to calculate distance.');
+				return;
+			}
+
+			if ((lastLat != null) && (lastLong != null)) {
+				var currDist = distance(lat, lon, lastLat, lastLong);
+
+				document.getElementById('currDist').innerHTML = 'Current distance traveled: ' + currDist.toFixed(2) + ' km';
+
+				totalDistance += currDist;
+				document.getElementById('totalDist').innerHTML = 'Total distance traveled: ' + totalDist.toFixed(2) + ' km';
+
+				updateStatus('Location successfully updated.')
+			}
+
+			lastLat = lat;
+			lastLong = lon;
+		}
+	</script>
+	<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+	<script>
+	var map = new google.maps.Map(document.getElementById('map'));
+	navigator.geolocation.getCurrentPosition(function(pos) {
+		map.setCenter(new google.maps.LatLng(
+			parseFloat(pos.coords.latitude),
+			parseFloat(pos.coords.longitude)));
+	}, handleLocationError);
+	</script>
+</body>
+</html>

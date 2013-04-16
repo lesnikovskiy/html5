@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Portal [http://localhost:3000]</title>
+	<link rel="stylesheet" href="/styles/main.css">
+	<style>
+		iframe {
+			height: 400px;
+			width: 800px;
+		}
+	</style>
+	<script>
+		
+	</script>
+</head>
+<body>
+	<h1>Cross-Origin Portal</h1>
+	<p><b>Origin</b>: http://localhost:3000</p>
+	Status <input type="text" id="status" value="Online">
+	<button id="sendButton"Change Status></button>
+	<p>This uses postMessage to send a status update to the widget iframe contained in the portal page.</p>
+	<iframe src="http://localhost:3000/postMessageWidget.html" frameborder="0" id="widget"></iframe>
+	<p><button id="stopButton">Stop Blinking Title</button></p>
+</body>
+</html>
