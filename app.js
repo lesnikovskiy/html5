@@ -21,7 +21,11 @@ app.configure(function() {
 	app.use(allowCrossDomain);
 	app.use(express.favicon());
 	app.use(express.logger('dev'));
-	app.use(express.bodyParser());
+	app.use(express.bodyParser({
+		uploadDir: __dirname + '/public/uploads',
+		keepExtensions: true
+	}));
+	app.use(express.limit('5mb'));
 	app.use(express.methodOverride());	
 	// IMPORTANT: use cookieParser before router
 	app.use(express.cookieParser());
@@ -40,6 +44,19 @@ app.get('/', function(req, res) {
 app.post('/upload', function(req, res) {
 	console.log(req.body);
 	res.send(201);	
+});
+
+app.post('/uploadFile', function(req, res) {
+	if (req.files)
+		console.log(req.files);
+		
+	res.json({
+		result: true, 
+		message: 'fileUploadedSuccessfully',
+		name: req.files.image.name,
+		type: req.files.image.type,
+		size: req.files.image.size
+	});
 });
 
 http.createServer(app).listen(app.get('port'), function() {
