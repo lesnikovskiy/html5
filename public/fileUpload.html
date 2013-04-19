@@ -4,6 +4,20 @@
 	<meta charset="UTF-8">
 	<title>File Upload</title>
 	<script type="text/javascript">	
+	var StringBuilder = {};
+	(function() {
+		var parse = function() {
+			return 'File uploaded: '
+				+ 'name '
+				+ this.name
+				+ '; type '
+				+ this.type
+				+ '; size '
+				+ this.size;
+		};
+		StringBuilder.parse = parse;
+	})(window);
+	
 	window.addEventListener('load', function() {
 		document.querySelector('#fileToUpload').addEventListener('change', function(e) {
 			var files = e.target.files;
@@ -19,10 +33,7 @@
 					var json = JSON.parse(response);
 					if (!json) return;
 					
-					var msg = 'Uploaded: name: ' + json.name + ' ';
-					msg += 'type: ' + json.type + ' ';
-					msg += 'size: ' + json.size;
-					document.querySelector('#status').appendChild(document.createTextNode(msg));
+					document.querySelector('#status').appendChild(document.createTextNode(StringBuilder.parse.call(json)));
 				}
 			};
 			fd.append('image', image);
