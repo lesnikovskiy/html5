@@ -3,6 +3,9 @@ var path = require('path');
 var express = require('express');
 var app = module.exports = express();
 var util = require('util');
+var fs = require('fs');
+// source: https://github.com/Worlize/WebSocket-Node
+var WebSocketServer = require('websocket').server;
 
 var allowCrossDomain = function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', '*');
@@ -59,6 +62,40 @@ app.post('/uploadFile', function(req, res) {
 	});
 });
 
-http.createServer(app).listen(app.get('port'), function() {
+var server = http.createServer(app).listen(app.get('port'), function() {
 	console.log('Express server listening on port: ' + app.get('port'));
+});
+
+var wsServer = new WebSocketServer({
+	httpServer: server,
+	autoAcceptConnections: false
+});
+
+function originIsAllowed(origin) {
+	return true;
+}
+
+wsServer.on('request', function(req) {
+	console.log(util.inspect(req));
+	
+	if (!originIsAllowed(req.origin)) {
+		req.reject();
+		console.log((new Date()) + ' Connection from origin ' + req.origin + ' rejected.');
+		return;
+	}
+	
+	var conn = req.accept('echo-protocol', req.origin);
+	console.log((new Date()) + ' Connection accepted.');
+	conn.on('message', function(message) {
+		if (message.type === 'utf8') {
+			console.log('Received Message: ' + message.utf8Data);
+			conn.sendUTF(message.utf8Data);
+		} else if (message.type === 'binary') {
+			console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+			conn.sendBytes(message.binaryData);
+		}
+	});
+	conn.on('close', function(reasonCode, description) {
+		console.log((new Date()) + ' Peer ' + conn.remoteAddress + ' disconnected');
+	});
 });

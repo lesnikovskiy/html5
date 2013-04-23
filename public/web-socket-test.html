@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title>WebSocket Test Page</title>
+	<script type="text/javascript">
+		var log = function (s) {
+			if (document.readState !== 'complete') {
+				log.buffer.push(s);
+			} else {
+				document.getElementById('output').textContent += (s + '\n');
+			}
+		};
+		
+		log.buffer = [];
+		
+		if (this.MozWebSocket)
+			WebSocket = MozWebSocket;
+			
+		url = "ws://localhost:3000";
+		w = new WebSocket(url);
+		w.onopen = function () {
+			log('open');
+			// set the type of binary data messages to ArrayBuffer
+			w.binaryType = 'arraybuffer';
+			
+			// send one string and one binary message when the socket opens
+			w.send('thank you for accepting this WebSocket request');
+			var a = new Uint8Array([8,6,7,5,3,0,9]);
+			w.send(a.buffer);
+		};
+		w.onmessage = function (e) {
+			log(e.data.toString());
+		};
+		w.onclose = function (e) {
+			log('closed');
+		};
+		w.onerror = function (e) {
+			log('error');
+		};
+		
+		window.onload = function() {
+			log(log.buffer.join('\n'));
+			document.getElementById('sendButton').onclick = function() {
+				w.send(document.getElementById('inputMessage').value);
+			};
+		};
+	</script>
+</head>
+<body>
+	<input type="text" id="inputMessage" value="Hello, Web Socket!" />
+	<button id="sendButton">Send</button>
+	<pre id="output"></pre>
+</body>
+</html>
