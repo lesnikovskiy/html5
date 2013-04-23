@@ -5,6 +5,7 @@ var app = module.exports = express();
 var util = require('util');
 var fs = require('fs');
 // source: https://github.com/Worlize/WebSocket-Node
+// how to deal websockets with asp.net: http://habrahabr.ru/post/145077/
 var WebSocketServer = require('websocket').server;
 
 var allowCrossDomain = function(req, res, next) {
