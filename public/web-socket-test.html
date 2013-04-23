@@ -5,20 +5,20 @@
 	<title>WebSocket Test Page</title>
 	<script type="text/javascript">
 		var log = function (s) {
-			if (document.readState !== 'complete') {
-				log.buffer.push(s);
-			} else {
+			if (document.readyState !== 'complete') {
+				log.buffer.push = s;
+			} else {			
 				document.getElementById('output').textContent += (s + '\n');
 			}
 		};
-		
+
 		log.buffer = [];
-		
+				
 		if (this.MozWebSocket)
 			WebSocket = MozWebSocket;
 			
-		url = "ws://localhost:3000";
-		w = new WebSocket(url);
+		url = "ws://127.0.0.1:3000/";
+		w = new WebSocket(url, 'echo-protocol');
 		w.onopen = function () {
 			log('open');
 			// set the type of binary data messages to ArrayBuffer
@@ -39,7 +39,7 @@
 			log('error');
 		};
 		
-		window.onload = function() {
+		window.onload = function() {		
 			log(log.buffer.join('\n'));
 			document.getElementById('sendButton').onclick = function() {
 				w.send(document.getElementById('inputMessage').value);

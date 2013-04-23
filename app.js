@@ -76,9 +76,7 @@ function originIsAllowed(origin) {
 	return true;
 }
 
-wsServer.on('request', function(req) {
-	console.log(util.inspect(req));
-	
+wsServer.on('request', function(req) {	
 	if (!originIsAllowed(req.origin)) {
 		req.reject();
 		console.log((new Date()) + ' Connection from origin ' + req.origin + ' rejected.');
