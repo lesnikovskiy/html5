@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title>HTML 5 WebSocket / Geolocation Tracker</title>
+	<link rel="stylesheet" href="/styles/web-socket-styles.css" />
+	<script type="text/javascript">
+		var socket;
+		
+		// semi-unique random ID for this session
+		var myId = Math.floor(100000*Math.random());
+		
+		var rowCount = 0;
+		
+		function updateSocketStatus(message) {
+			document.getElementById('socketStatus').innerHTML = message;
+		}
+		
+		function updateGeolocationStatus(message) {
+			document.getElementById('geoStatus').innerHTML = message;
+		}
+		
+		function sendMyLocation(newLocation) {
+			if (socket) {
+				socket.send(newLocation);
+			}
+		}
+		
+		function dataReturned(locationData) {
+			var allData = JSON.parse(locationData);
+			
+			var incomingId = allData[0];
+			var lat = allData[1];
+			var lng = allData[2];
+			
+			var incomingRow = document.getElementById(incomingId);
+			if (!incomingRow) {
+				incomingRow = document.createElement('div');
+				incomingRow.setAttribute('id', incomingId);
+				incomingRow.userText = (incomingId == myId) ? 'Me' : 'User ' + rowCount;
+				rowCount++;
+				
+				document.body.appendChild(incomingRow);
+			}
+			
+			incomingRow.innerHTML = incomingRow.userText + ' \\ Lat: ' + lat + ' \\ Lng: ' + lng;
+			
+			return incomingRow.userText;
+		}
+		
+		function loadDemo() {
+			if (window.WebSocket) {
+				url = 'ws:localhost:3000';
+				socket = new WebSocket(url, 'echo-protocol');
+				socket.onopen = function() {
+					updateSocketStatus('Connected to WebSocket tracker server');
+				};
+				socket.onmessage = function (e) {
+					updateSocketStatus('Updated location from ' + dataReturned(e.data));
+				};
+			}
+			
+			var geolocation;
+			
+			if (navigator.geolocation) {
+				geolocation = navigator.geolocation;
+				
+				updateGeolocationStatus('HTML 5 Geolocation is supported in your browser.');
+				
+				geolocation.watchPosition(function(pos) {
+					var lat = pos.coords.latitude;
+					var lng = pos.coords.longitude;
+					var timestamp = pos.timestamp;
+					
+					updateGeolocationStatus('Location at ' + timestamp);
+					
+					// Send my location via WebSocket
+					sendMyLocation(JSON.stringify([myId, lat, lng]));
+				}, function(err) {
+					switch (err.code) {
+						case 0:
+							updateGeolocationStatus('There was an error while retrieving your location: ' + err.message);
+							break;
+						case 1:
+							updateGeolocationStatus('The user prevented this page from retrieving a location.');
+							break;
+						case 2:
+							updateGeolocationStatus('The browser was unable to determine your location: ' + err.message);
+							break;
+						case 3:
+							updateGeolocationStatus('The browser timed out before retrieving the location');
+							break;
+					}
+				}, {maximumAge: 20000});
+			}
+		}
+	</script>
+</head>
+<body onload="loadDemo()">
+	<div><strong>Geolocation</strong>: <p id="geoStatus">HTML 5 Geolocation is <strong>not</strong> supported in your browser.</p></div>
+	<div><strong>WebSocket</strong>: <p id="socketStatus">WebSocket is <strong>not</strong> supported in your browser.</p></div>
+</body>
+</html>
