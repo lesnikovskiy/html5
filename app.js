@@ -8,6 +8,10 @@ var fs = require('fs');
 // how to deal websockets with asp.net: http://habrahabr.ru/post/145077/
 var WebSocketServer = require('websocket').server;
 
+/* To debug node JS application use next resources:
+*	https://github.com/dannycoates/v8-profiler
+*	https://github.com/dannycoates/node-inspector */
+
 var allowCrossDomain = function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', '*');
 	res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
@@ -29,7 +33,7 @@ app.configure(function() {
 		uploadDir: __dirname + '/public/uploads',
 		keepExtensions: true
 	}));
-	app.use(express.limit('5mb'));
+	app.use(express.limit('1024000mb'));
 	app.use(express.methodOverride());	
 	// IMPORTANT: use cookieParser before router
 	app.use(express.cookieParser());
@@ -80,6 +84,7 @@ wsServer.on('request', function(req) {
 	if (!originIsAllowed(req.origin)) {
 		req.reject();
 		console.log((new Date()) + ' Connection from origin ' + req.origin + ' rejected.');
+		
 		return;
 	}
 	

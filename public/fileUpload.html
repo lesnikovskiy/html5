@@ -3,6 +3,9 @@
 <head>
 	<meta charset="UTF-8">
 	<title>File Upload</title>
+	<style type="text/css">
+		#fileUploadProgress { display: none; }
+	</style>
 	<script type="text/javascript">	
 	var StringBuilder = {};
 	(function() {
@@ -26,15 +29,26 @@
 			var xhr = new XMLHttpRequest();
 			var fd = new FormData();
 			
+			document.querySelector('#fileToUpload').style.display = 'none';
+			document.querySelector('#fileUploadProgress').style.display = 'block';
+			
 			xhr.open('POST', '/uploadFile', true);
 			xhr.onload = function(e) {
+				document.querySelector('#fileToUpload').style.display = 'block';
+				document.querySelector('#fileUploadProgress').style.display = 'none';
+				
 				var response = e.target.responseText;
 				if (response) {
 					var json = JSON.parse(response);
 					if (!json) return;
 					
-					document.querySelector('#status').appendChild(document.createTextNode(StringBuilder.parse.call(json)));
+					document.querySelector('#status').innerHTML = StringBuilder.parse.call(json) + '<br />';
 				}
+			};
+			xhr.upload.onprogress = function (e) {
+				var ratio = e.loaded / e.total;
+				var progressValue = Math.ceil(ratio * 100);
+				document.querySelector('#fileUploadProgress').value = progressValue;
 			};
 			fd.append('image', image);
 			xhr.send(fd);
@@ -44,6 +58,7 @@
 </head>
 <body>
 		<label for="image">Image: <input type="file" name="image" id="fileToUpload" /></label>
+		<progress id="fileUploadProgress" max="100"></progress>
 		<p id="status"></p>
 </body>
 </html>
