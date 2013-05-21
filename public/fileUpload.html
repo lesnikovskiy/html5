@@ -7,8 +7,48 @@
 		#fileUploadProgress { display: none; }
 	</style>
 	<script type="text/javascript">	
+	function setCookie (value) {
+		document.cookie = 'cookie-msg-test=' + value + '; path=/';
+		
+		return true;
+	}
+	
+	function getCookie() {
+		debugger;
+		var cookieName = 'cookie-msg-test='
+		var ca = document.cookie.split(';');
+		for (var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ')
+				c = c.substring(1, c.length);
+				
+			if (c.indexOf(cookieName) == 0) 
+				return c.substring(cookieName.length, c.length);
+		}
+	}
+	
 	var StringBuilder = {};
 	(function() {
+		var parseFileSize = function() {
+			var bytes = this;
+			
+			if( isNaN( bytes ) ){ return; }
+			var units = [ ' bytes', ' KB', ' MB', ' GB', ' TB', ' PB', ' EB', 'ZB', ' YB' ];
+			var amountOf2s = Math.floor( Math.log( +bytes )/Math.log(2) );
+			if( amountOf2s < 1 ){
+				amountOf2s = 0;
+			}
+			var i = Math.floor( amountOf2s / 10 );
+			bytes = +bytes / Math.pow( 2, 10*i );
+		 
+			// Rounds to 3 decimals places.
+			if( bytes.toString().length > bytes.toFixed(3).toString().length ){
+				bytes = bytes.toFixed(3);
+			}
+			
+			return bytes + units[i];
+		};
+		
 		var parse = function() {
 			return 'File uploaded: '
 				+ 'name '
@@ -16,8 +56,10 @@
 				+ '; type '
 				+ this.type
 				+ '; size '
-				+ this.size;
+				+ StringBuilder.parseFileSize.call(parseInt(this.size));
 		};
+		
+		StringBuilder.parseFileSize = parseFileSize;
 		StringBuilder.parse = parse;
 	})(window);
 	
@@ -57,8 +99,14 @@
 	</script>
 </head>
 <body>
-		<label for="image">Image: <input type="file" name="image" id="fileToUpload" /></label>
-		<progress id="fileUploadProgress" max="100"></progress>
-		<p id="status"></p>
+	<div id="svg-panel">
+		<svg width="800" height="200">
+			<text x="10" y="80" font-family="Droid Sans" stroke="#0ff" font-size="40px" font-weight="bold">This is a demo of uploading files with AJAX</text>
+			<text x="10" y="180" font-family="Droid Sans" stroke="#0ff" font-size="40px" font-weight="bold">HTML5 support is required</text>
+		</svg>
+	</div>
+	<label for="image">Image: <input type="file" name="image" id="fileToUpload" /></label>
+	<progress id="fileUploadProgress" max="100"></progress>
+	<p id="status"></p>
 </body>
 </html>
